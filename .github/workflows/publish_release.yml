@@ -1,0 +1,73 @@
+name: Publish release from fork build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        required: true
+        default: "v3.0"
+      run_id:
+        description: "Fork 'Build Release APK' run id"
+        required: true
+        default: "34577328384"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download release artifacts from fork
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          repo: maybeagoodguy60-droid/ZalithLauncher2
+          run_id: ${{ inputs.run_id }}
+          path: dl
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checksums
+        run: |
+          cd dl
+          sha256sum */*.apk > CHECKSUMS.txt
+          cat CHECKSUMS.txt
+          ls -la */*
+
+      - name: Create public release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ inputs.tag }}" dl/*/*.apk dl/CHECKSUMS.txt \
+            --title "Aether Launcher 3.0" \
+            --notes-file - <<'EOF'
+          ## Aether Launcher 3.0 — first public build
+
+          > [!WARNING]
+          > Unofficial fork of ZalithLauncher2, maintained by GrayDev. Not affiliated with upstream.
+
+          Offline-first Android launcher for Minecraft: Java Edition. No Microsoft account required;
+          installs alongside stock ZalithLauncher2 (`org.graydev.aetherlauncher`).
+
+          ### Downloads
+
+          Pick the APK matching your device (most modern phones: **arm64**):
+
+          | File | Devices |
+          |---|---|
+          | `*-arm64-v8a.apk` (~170 MB) | Most phones from the last ~8 years |
+          | `*-armeabi-v7a.apk` (~162 MB) | Older 32-bit ARM phones |
+          | `*-x86_64.apk` / `*-x86.apk` | Emulators / Chromebooks |
+          | `*.apk` (universal, ~334 MB) | Works everywhere, biggest download |
+
+          Verify with `CHECKSUMS.txt` (SHA-256).
+
+          ### Notes
+
+          - Minified release builds, signed with the GrayDev key.
+          - Fresh install required — release builds cannot upgrade debug installs (different signature).
+          - Source: fork branch `graydev/zl3-offline`. Update feed served from GrayDev infrastructure only.
+          EOF
