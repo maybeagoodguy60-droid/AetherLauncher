@@ -6,11 +6,11 @@ on:
       tag:
         description: "Release tag"
         required: true
-        default: "v3.0"
+        default: "v3.1.0"
       run_id:
         description: "Fork 'Build Release APK' run id"
         required: true
-        default: "34577328384"
+        default: "38409973430"
 
 jobs:
   publish:
@@ -42,15 +42,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${{ inputs.tag }}" dl/*/*.apk dl/CHECKSUMS.txt \
-            --title "Aether Launcher 3.0" \
+            --title "Aether Launcher ${{ inputs.tag }}" \
             --notes-file - <<'EOF'
-          ## Aether Launcher 3.0 — first public build
+          ## Aether Launcher — public build
 
           > [!WARNING]
           > Unofficial fork of ZalithLauncher2, maintained by GrayDev. Not affiliated with upstream.
 
-          Offline-first Android launcher for Minecraft: Java Edition. No Microsoft account required;
-          installs alongside stock ZalithLauncher2 (`org.graydev.aetherlauncher`).
+          Android launcher for Minecraft: Java Edition, rebased on upstream **2.7**.
+          Offline accounts are fully supported natively; installs alongside stock
+          ZalithLauncher2 (`org.graydev.aetherlauncher`).
 
           ### Downloads
 
@@ -69,5 +70,6 @@ jobs:
 
           - Minified release builds, signed with the GrayDev key.
           - Fresh install required — release builds cannot upgrade debug installs (different signature).
+          - Aligned with upstream 2.7 releases (all upstream 2.7 features included).
           - Source: fork branch `graydev/zl3-offline`. Update feed served from GrayDev infrastructure only.
           EOF
